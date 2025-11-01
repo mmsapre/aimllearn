@@ -1,0 +1,17 @@
+# Python 3.11+ required
+
+# For data science
+jupyter==1.0.0
+ipython==8.17.2
+
+# Will be used in AI/ML numpy==1.25.2
+pandas==2.1.4
+
+# Testing
+pytest==7.4.3
+
+# Code formatting
+black==23.11.0
+
+# Web UI and interactions
+flask==3.0.0
