@@ -1,0 +1,21 @@
+from datetime import datetime
+
+def demonstrate_dictionary_usage():
+    record = {
+        "id": 101,
+        "amount": 950,
+        "currency": "USD",
+        "status": "validated",
+        "etl_batch": f"BATCH_{datetime.now().strftime('%Y%m%d_%H%M')}"
+    }
+    return {
+        "concept": "Dictionary",
+        "description": "Stores key-value pairs; ideal for schema mapping and transformations.",
+        "example_record": record,
+        "use_case": "Mapping source fields to target schema",
+        "operations": {
+            "add_key": "record['country'] = 'US'",
+            "update_value": "record['status'] = 'processed'",
+            "iterate": "for k, v in record.items(): print(k, v)"
+        }
+    }
