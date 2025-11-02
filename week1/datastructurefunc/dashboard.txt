@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""
+DataStructures1: Interactive Python + ETL Learning Dashboard
+"""
+from flask import Flask, jsonify, render_template, request
+from list_tuple_lesson import demonstrate_list_tuple_usage
+from dict_lesson import demonstrate_dictionary_usage
+from set_lesson import demonstrate_set_usage
+from function_lesson import demonstrate_functions
+import io, sys, contextlib, traceback, random
+
+app = Flask(__name__)
+
+@app.route("/")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/api/list-tuple")
+def api_list_tuple():
+    return jsonify(demonstrate_list_tuple_usage())
+
+@app.route("/api/dictionary")
+def api_dictionary():
+    return jsonify(demonstrate_dictionary_usage())
+
+@app.route("/api/set")
+def api_set():
+    return jsonify(demonstrate_set_usage())
+
+@app.route("/api/functions")
+def api_functions():
+    return jsonify(demonstrate_functions())
+
+@app.route("/api/compare-all")
+def api_compare_all():
+    lt = demonstrate_list_tuple_usage()
+    d = demonstrate_dictionary_usage()
+    s = demonstrate_set_usage()
+    return jsonify([
+        {"structure": "List", "ordered": True, "mutable": True, "duplicates": True, "use_case": lt["list"]["used_for"]},
+        {"structure": "Tuple", "ordered": True, "mutable": False, "duplicates": True, "use_case": lt["tuple"]["used_for"]},
+        {"structure": "Dictionary", "ordered": True, "mutable": True, "duplicates": False, "use_case": d["use_case"]},
+        {"structure": "Set", "ordered": False, "mutable": True, "duplicates": False, "use_case": s["use_case"]}
+    ])
+
+@app.route("/api/playground/execute", methods=["POST"])
+def run_playground():
+    """Execute learner code safely"""
+    code = request.json.get("code", "")
+    output = io.StringIO()
+    safe_builtins = {
+        "print": print, "len": len, "sum": sum,
+        "set": set, "list": list, "tuple": tuple,
+        "dict": dict, "range": range, "sorted": sorted,
+        "min": min, "max": max, "any": any, "all": all
+    }
+    try:
+        with contextlib.redirect_stdout(output):
+            exec(code, {"__builtins__": safe_builtins})
+        return jsonify({"success": True, "output": output.getvalue()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e), "traceback": traceback.format_exc()})
+
+@app.route("/api/quiz")
+def quiz_mode():
+    questions = [
+        {"question": "Which data structure removes duplicates automatically?",
+         "options": ["List","Tuple","Dictionary","Set"], "answer": "Set",
+         "explanation": "Sets automatically remove duplicates and store unique values."},
+        {"question": "Which structure is ideal for key-value data mapping?",
+         "options": ["List","Tuple","Dictionary","Set"], "answer": "Dictionary",
+         "explanation": "Dictionaries store mappings between keys and values."},
+        {"question": "Which structure is immutable and preserves order?",
+         "options": ["List","Tuple","Dictionary","Set"], "answer": "Tuple",
+         "explanation": "Tuples cannot be modified after creation but retain order."},
+        {"question": "Which structure is best for appending new ETL records?",
+         "options": ["List","Tuple","Dictionary","Set"], "answer": "List",
+         "explanation": "Lists are mutable and allow dynamic insertion."},
+        {"question": "Which concept encapsulates reusable transformation logic?",
+         "options": ["List","Tuple","Dictionary","Function"], "answer": "Function",
+         "explanation": "Functions modularize reusable transformation logic."}
+    ]
+    return jsonify(random.sample(questions, 3))
+
+if __name__ == "__main__":
+    print("🚀 DataStructures1 Dashboard running on http://localhost:5000")
+    app.run(debug=True, port=5000)
