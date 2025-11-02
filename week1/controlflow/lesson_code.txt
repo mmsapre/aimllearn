@@ -1,0 +1,63 @@
+"""
+Day 3: Control Flow for AI Systems — ETL Context
+"""
+
+import random
+from datetime import datetime
+from typing import List, Dict, Any, Tuple
+
+class DataValidator:
+    """ETL data validator using loops & conditionals."""
+    def __init__(self):
+        self.validation_rules = {"min_length": 3, "allowed_types": (str, int, float)}
+        self.stats = {"total_checked": 0, "valid_count": 0, "invalid_count": 0}
+
+    def validate_single_item(self, data_point: Any) -> Tuple[bool, str]:
+        if data_point is None:
+            return False, "Missing data"
+        if not isinstance(data_point, self.validation_rules["allowed_types"]):
+            return False, f"Invalid type: {type(data_point).__name__}"
+        if len(str(data_point)) < self.validation_rules["min_length"]:
+            return False, "Too short"
+        return True, "Valid"
+
+    def process_dataset(self, dataset: List[Any]) -> Dict[str, Any]:
+        valid, invalid, log = [], [], []
+        for i, item in enumerate(dataset):
+            self.stats["total_checked"] += 1
+            ok, msg = self.validate_single_item(item)
+            if ok:
+                valid.append(str(item))
+                self.stats["valid_count"] += 1
+                log.append(f"✅ Row {i} OK: {msg}")
+            else:
+                invalid.append({"item": item, "reason": msg})
+                self.stats["invalid_count"] += 1
+                log.append(f"❌ Row {i} FAIL: {msg}")
+        return {"stats": self.stats, "valid": valid, "invalid": invalid, "log": log}
+
+class SimpleSentimentAI:
+    """Simplified sentiment analyzer using control flow."""
+    def analyze_sentiment(self, text: str) -> Dict[str, Any]:
+        if not text:
+            return {"sentiment": "unknown", "reason": "Empty input"}
+        positives = ["good", "great", "excellent", "love", "fantastic"]
+        negatives = ["bad", "poor", "terrible", "hate"]
+        text_l = text.lower()
+        pos = sum(1 for w in positives if w in text_l)
+        neg = sum(1 for w in negatives if w in text_l)
+        if pos > neg:
+            return {"sentiment": "positive", "confidence": 0.8}
+        elif neg > pos:
+            return {"sentiment": "negative", "confidence": 0.8}
+        else:
+            return {"sentiment": "neutral", "confidence": 0.5}
+
+def demonstrate_ai_training_loop():
+    """While-loop demo for training simulation."""
+    acc, epoch = 0.2, 0
+    while acc < 0.85 and epoch < 10:
+        epoch += 1
+        acc += random.uniform(0.05, 0.15)
+        print(f"Epoch {epoch}: Accuracy = {acc:.2f}")
+    return epoch, round(acc, 2)
