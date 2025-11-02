@@ -1,0 +1,102 @@
+@echo off
+REM ===============================================================
+REM  Windows Setup Script for Day 2: Variables, Data Types & Operators
+REM ===============================================================
+
+echo 🚀 Generating Day 2 lesson files...
+
+REM Create directory
+if not exist day2_variables_datatypes mkdir day2_variables_datatypes
+cd day2_variables_datatypes
+
+REM Create setup.bat
+echo 📦 Creating setup.bat...
+(
+echo @echo off
+echo echo 🔧 Setting up Python environment for Day 2: Variables, Data Types, and Operators
+echo python --version ^>nul 2^>^&1
+echo IF %%ERRORLEVEL%% NEQ 0 (
+echo     echo ❌ Python 3 not found. Please install Python 3.11 or higher.
+echo     exit /b 1
+echo )
+echo echo 📦 Creating virtual environment...
+echo python -m venv ai_course_env
+echo echo 🔄 Activating virtual environment...
+echo CALL ai_course_env\Scripts\activate.bat
+echo echo 📥 Installing requirements...
+echo python -m pip install --upgrade pip
+echo IF EXIST requirements.txt (
+echo     pip install -r requirements.txt
+echo ) ELSE (
+echo     echo ⚠️ No requirements.txt found, skipping dependency installation.
+echo )
+echo echo ✅ Setup complete!
+echo echo 🎯 To activate later, run: ai_course_env\Scripts\activate
+echo echo 🚀 Then run: python lesson_code.py
+) > setup.bat
+
+REM Create requirements.txt
+echo 📋 Creating requirements.txt...
+(
+echo # Day 2: Variables, Data Types, and Operators for AI
+echo jupyter==1.0.0
+echo ipython==8.17.2
+echo numpy==1.25.2
+echo pandas==2.1.4
+echo pytest==7.4.3
+echo black==23.11.0
+) > requirements.txt
+
+REM Create lesson_code.py
+echo 🐍 Creating lesson_code.py...
+(
+echo print("🎓 Day 2: Variables, Data Types, and Operators for AI")
+echo print("Use this lesson to learn about strings, ints, floats, bools, and lists in AI contexts.")
+echo print("Run python test_lesson.py to verify your learning!")
+) > lesson_code.py
+
+REM Create test_lesson.py
+echo 🧪 Creating test_lesson.py...
+(
+echo import pytest
+echo.
+echo def test_basic_types():
+echo     s = "AI"
+echo     i = 42
+echo     f = 3.14
+echo     b = True
+echo     lst = [1, 2, 3]
+echo     assert isinstance(s, str)
+echo     assert isinstance(i, int)
+echo     assert isinstance(f, float)
+echo     assert isinstance(b, bool)
+echo     assert isinstance(lst, list)
+echo.
+echo if __name__ == "__main__":
+echo     print("🧪 Running Day 2 basic data type tests...")
+echo     test_basic_types()
+echo     print("✅ All tests passed!")
+) > test_lesson.py
+
+REM Create README.md
+echo 📖 Creating README.md...
+(
+echo # Day 2: Variables, Data Types, and Operators for AI
+echo.
+echo Learn how Python data types form the foundation of AI systems.
+echo.
+echo ## Quick Start
+echo 1. Run setup.bat
+echo 2. Activate environment: ai_course_env\Scripts\activate
+echo 3. Run python lesson_code.py
+echo 4. Verify with python test_lesson.py
+) > README.md
+
+echo ✅ All Day 2 lesson files created successfully!
+echo 📂 Folder: %cd%
+echo.
+echo To begin:
+echo   1. Run setup.bat
+echo   2. Activate environment
+echo   3. Run python lesson_code.py
+echo   4. Run python test_lesson.py
