@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""
+Dashboard for Day 3: Control Flow for AI Systems (ETL Context)
+"""
+
+from flask import Flask, render_template, request, jsonify, Response
+import io, sys, time, csv
+from lesson_code import DataValidator, SimpleSentimentAI, demonstrate_ai_training_loop
+
+app = Flask(__name__)
+
+@app.route("/")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/api/validate", methods=["POST"])
+def validate_data():
+    """Validate a mock dataset (using loops & conditionals)."""
+    validator = DataValidator()
+    dataset = ["good record", "ok", None, 123, "invalid", "great experience"]
+    results = validator.process_dataset(dataset)
+    return jsonify(results)
+
+@app.route("/api/train")
+def train_ai():
+    """Simulate AI training (control flow example)."""
+    epoch, acc = demonstrate_ai_training_loop()
+    return jsonify({"final_epoch": epoch, "final_accuracy": acc})
+
+@app.route("/api/playground/stream", methods=["POST"])
+def playground_stream():
+    """Execute user code and stream print outputs safely."""
+    data = request.get_json()
+    code = data.get("code", "").strip()
+    if not code:
+        return jsonify({"error": "No code provided"}), 400
+
+    def generate():
+        safe_builtins = {
+            "range": range, "len": len, "sum": sum, "min": min, "max": max, "print": print,
+            "int": int, "str": str, "float": float, "csv": csv, "__name__": "__main__"
+        }
+        local_env = {}
+        output_buffer = io.StringIO()
+        sys_stdout = sys.stdout
+        sys.stdout = output_buffer
+        try:
+            exec(compile(code, "<playground>", "exec"), {"__builtins__": safe_builtins}, local_env)
+            sys.stdout = sys_stdout
+            for line in output_buffer.getvalue().splitlines():
+                yield f"data: {line}\n\n"
+                time.sleep(0.4)
+            yield "data: === Execution Complete ===\n\n"
+        except Exception as e:
+            sys.stdout = sys_stdout
+            yield f"data: Error: {str(e)}\n\n"
+
+    return Response(generate(), mimetype="text/event-stream")
+
+if __name__ == "__main__":
+    print("🚀 Starting Control Flow Dashboard at http://localhost:5000")
+    app.run(debug=True, port=5000)
