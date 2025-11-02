@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🧩 ETL Data Structures & Functions Playground</title>
+<style>
+body{font-family:Segoe UI;background:linear-gradient(135deg,#667eea,#764ba2);color:#333;margin:0;padding:30px;}
+.container{max-width:960px;margin:auto;background:white;border-radius:12px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.1);}
+button{background:#667eea;color:white;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;margin:5px;}
+button:hover{background:#5a6fd8;}
+pre,textarea{background:#f8f8f8;border-radius:8px;width:100%;padding:12px;font-family:monospace;white-space:pre-wrap;}
+select,input{padding:8px;border-radius:6px;border:1px solid #ccc;margin:5px;}
+.diff{display:flex;gap:10px;margin-top:10px;}
+.diff>div{flex:1;background:#f9fafb;padding:10px;border:1px solid #ddd;border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🧠 ETL Data Structures & Functions Playground</h2>
+  <p>Learn and experiment with Lists, Tuples, Dictionaries, Sets, and Functions for ETL systems.</p>
+
+  <div>
+    <button onclick="loadLesson('/api/list-tuple','List & Tuple')">📘 Lists & Tuples</button>
+    <button onclick="loadLesson('/api/dictionary','Dictionary')">📙 Dictionary</button>
+    <button onclick="loadLesson('/api/set','Set')">📗 Set</button>
+    <button onclick="loadLesson('/api/functions','Functions')">🧮 Functions</button>
+    <button onclick="compareAll()">🔍 Compare All</button>
+    <button onclick="startQuiz()">🎯 Quiz</button>
+  </div>
+
+  <pre id="lesson-output">💡 Select a topic to explore...</pre>
+
+  <h3>⚙️ Interactive Playground</h3>
+  <select id="type">
+    <option value="list">List</option>
+    <option value="dict">Dictionary</option>
+    <option value="set">Set</option>
+    <option value="tuple">Tuple</option>
+  </select>
+  <input id="operation" placeholder="Operation (append, add, slice, etc.)">
+  <input id="key" placeholder="Key (for dict)">
+  <input id="value" placeholder="Value">
+  <button onclick="runOperation()">▶ Run</button>
+  <button onclick="resetState()">♻ Reset</button>
+
+  <div class="diff">
+    <div><h4>Before</h4><pre id="before">---</pre></div>
+    <div><h4>After</h4><pre id="after">---</pre></div>
+  </div>
+
+  <h3>🧮 Function Playground</h3>
+  <textarea id="code" placeholder="Write your Python ETL logic here..."></textarea>
+  <button onclick="runFunction()">▶ Execute</button>
+  <pre id="fout">Output will appear here...</pre>
+
+  <div id="quiz-area"></div>
+</div>
+
+<script>
+let currentLesson = '';
+
+function loadLesson(api, title){
+  fetch(api).then(r=>r.json()).then(d=>{
+    currentLesson=title;
+    document.getElementById("lesson-output").textContent = 
+      title+"\\n\\n"+d.description+"\\nExamples:\\n"+JSON.stringify(d.examples,null,2);
+  });
+}
+
+function runOperation(){
+  const payload = {
+    type: document.getElementById("type").value,
+    operation: document.getElementById("operation").value,
+    key: document.getElementById("key").value,
+    value: document.getElementById("value").value
+  };
+  fetch("/api/operate",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  }).then(r=>r.json()).then(res=>{
+    if(res.success){
+      document.getElementById("before").textContent=JSON.stringify(res.before,null,2);
+      document.getElementById("after").textContent=JSON.stringify(res.after,null,2);
+    }else{
+      document.getElementById("after").textContent="❌ "+res.error;
+    }
+  });
+}
+
+function resetState(){
+  fetch("/api/state").then(r=>r.json()).then(state=>{
+    document.getElementById("before").textContent=JSON.stringify(state,null,2);
+    document.getElementById("after").textContent="---";
+  });
+}
+
+function runFunction(){
+  const code=document.getElementById("code").value;
+  fetch("/api/function",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})})
+  .then(r=>r.json()).then(res=>{
+    document.getElementById("fout").textContent=res.success?res.output:"❌ "+res.error;
+  });
+}
+
+function compareAll(){
+  fetch("/api/compare-all").then(r=>r.json()).then(rows=>{
+    let out="📊 Comparison of Data Structures:\\n";
+    rows.forEach(r=>out+=`${r.structure.padEnd(10)} | Ordered: ${r.ordered}, Mutable: ${r.mutable}, Duplicates: ${r.duplicates}, Use: ${r.use_case}\\n`);
+    document.getElementById("lesson-output").textContent=out;
+  });
+}
+
+function startQuiz(){
+  fetch("/api/quiz").then(r=>r.json()).then(qs=>{
+    const quiz=document.getElementById("quiz-area");
+    quiz.innerHTML="";
+    qs.forEach((q,idx)=>{
+      const div=document.createElement("div");
+      div.innerHTML=`<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
+      q.options.forEach(opt=>div.innerHTML+=`<label><input type='radio' name='q${idx}' value='${opt}'> ${opt}</label><br>`);
+      div.innerHTML+=`<p id='ex${idx}' style='display:none;'></p><hr>`;
+      quiz.appendChild(div);
+    });
+    const btn=document.createElement("button");
+    btn.textContent="✅ Submit";
+    btn.onclick=()=>checkAnswers(qs);
+    quiz.appendChild(btn);
+  });
+}
+
+function checkAnswers(qs){
+  let score=0;
+  qs.forEach((q,idx)=>{
+    const chosen=document.querySelector(`input[name='q${idx}']:checked`);
+    const exp=document.getElementById(`ex${idx}`);
+    if(!chosen){exp.style.display="block";exp.style.color="orange";exp.textContent="⚠️ Not answered.";}
+    else if(chosen.value===q.answer){exp.style.display="block";exp.style.color="green";exp.textContent=`✅ ${q.explanation}`;score++;}
+    else{exp.style.display="block";exp.style.color="red";exp.textContent=`❌ ${q.explanation}`;}
+  });
+  alert(`🎯 You scored ${score}/${qs.length}`);
+}
+window.onload=resetState;
+</script>
+</body>
+</html>
