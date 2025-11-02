@@ -1,0 +1,20 @@
+from typing import List, Tuple
+
+def demonstrate_list_tuple_usage():
+    transactions: List[int] = [100, 200, 200, 300]
+    transactions.append(400)
+    list_info = {
+        "type": "list",
+        "properties": "ordered, mutable, allows duplicates",
+        "example": transactions,
+        "used_for": "Staging transactional data (append new ETL records)"
+    }
+
+    batch_info: Tuple[str, int, str] = ("Batch-A", 3, "processed")
+    tuple_info = {
+        "type": "tuple",
+        "properties": "ordered, immutable, fixed length",
+        "example": batch_info,
+        "used_for": "Fixed ETL metadata (batch name, run ID, status)"
+    }
+    return {"list": list_info, "tuple": tuple_info}
