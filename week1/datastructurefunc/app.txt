@@ -1,0 +1,246 @@
+from flask import Flask, jsonify, render_template, request
+import io, contextlib, traceback
+
+app = Flask(__name__)
+
+# ---------------- In-Memory Data Store ----------------
+store = {
+    "list": [10, 20, 30, 40],
+    "tuple": (5, 10, 15),
+    "dict": {"a": 1, "b": 2, "c": 3},
+    "set": {1, 2, 3, 4}
+}
+
+
+# ---------------- Helper ----------------
+def parse_value(v):
+    if v is None or v == "":
+        return v
+    try:
+        if "." in v:
+            return float(v)
+        return int(v)
+    except ValueError:
+        return v
+
+
+# ---------------- HOME ----------------
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+
+# ---------- LESSON ENDPOINTS ----------
+@app.route("/api/list-tuple")
+def list_tuple_lesson():
+    return jsonify({
+        "lesson": "List & Tuple",
+        "description": "Lists are mutable, ordered sequences; tuples are immutable. Used for ETL records, batches, and configuration constants.",
+        "examples": {
+            "list": "[10,20,30] → append(40) → [10,20,30,40]",
+            "tuple": "(1,2,3) immutable → cannot modify directly"
+        }
+    })
+
+
+@app.route("/api/dictionary")
+def dictionary_lesson():
+    return jsonify({
+        "lesson": "Dictionary",
+        "description": "Key–value mapping used for ETL record fields (e.g. {'id':1,'status':'processed'}).",
+        "examples": {
+            "dict": "{'id':1,'status':'raw'} → update → {'id':1,'status':'validated'}"
+        }
+    })
+
+
+@app.route("/api/set")
+def set_lesson():
+    return jsonify({
+        "lesson": "Set",
+        "description": "Unordered unique collection — removes duplicates, ideal for distinct currency codes or IDs.",
+        "examples": {
+            "set": "['USD','USD','EUR'] → set() → {'USD','EUR'}"
+        }
+    })
+
+
+@app.route("/api/functions")
+def functions_lesson():
+    return jsonify({
+        "lesson": "Functions",
+        "description": "Reusable logic — e.g. transform(), validate(), clean() functions in ETL pipelines.",
+        "examples": {
+            "function": "def transform(r): return {...} → reusable across data jobs"
+        }
+    })
+
+
+# ---------- COMPARE ALL ----------
+@app.route("/api/compare-all")
+def compare_all():
+    table = [
+        {"structure": "List", "ordered": "✅ Yes", "mutable": "✅ Yes", "duplicates": "✅ Yes", "use_case": "Dynamic ETL batches"},
+        {"structure": "Tuple", "ordered": "✅ Yes", "mutable": "❌ No", "duplicates": "✅ Yes", "use_case": "Immutable configs"},
+        {"structure": "Dictionary", "ordered": "✅ (Py3.7+)", "mutable": "✅ Yes", "duplicates": "Keys ❌", "use_case": "JSON-like records"},
+        {"structure": "Set", "ordered": "❌ No", "mutable": "✅ Yes", "duplicates": "❌ No", "use_case": "Unique elements"},
+        {"structure": "Function", "ordered": "N/A", "mutable": "N/A", "duplicates": "N/A", "use_case": "Reusable ETL logic"},
+    ]
+    return jsonify(table)
+
+
+# ---------- QUIZ ----------
+@app.route("/api/quiz")
+def quiz():
+    qs = [
+        {
+            "question": "Which data type removes duplicates automatically?",
+            "options": ["List", "Tuple", "Set", "Dictionary"],
+            "answer": "Set",
+            "explanation": "Sets automatically keep unique items only."
+        },
+        {
+            "question": "Which structure is immutable?",
+            "options": ["List", "Tuple", "Dictionary", "Set"],
+            "answer": "Tuple",
+            "explanation": "Tuples cannot be changed once created."
+        },
+        {
+            "question": "Which data structure stores key-value pairs?",
+            "options": ["List", "Tuple", "Dictionary", "Set"],
+            "answer": "Dictionary",
+            "explanation": "Dictionaries store mappings between keys and values."
+        },
+        {
+            "question": "Which data type is best for ordered, mutable data?",
+            "options": ["List", "Set", "Tuple", "Function"],
+            "answer": "List",
+            "explanation": "Lists are ordered and mutable, ideal for sequential data."
+        },
+    ]
+    return jsonify(qs)
+
+
+# ---------- STATE ----------
+@app.route("/api/state")
+def get_state():
+    return jsonify(store)
+
+
+# ---------- OPERATE ----------
+@app.route("/api/operate", methods=["POST"])
+def operate():
+    data = request.get_json()
+    dtype = data.get("type")
+    op = data.get("operation")
+    key = data.get("key")
+    val = data.get("value")
+
+    before = store[dtype]
+    after = None
+    msg = ""
+
+    try:
+        # ----- LIST -----
+        if dtype == "list":
+            if op == "append":
+                store["list"].append(parse_value(val))
+            elif op == "insert":
+                store["list"].insert(0, parse_value(val))
+            elif op == "remove":
+                if parse_value(val) in store["list"]:
+                    store["list"].remove(parse_value(val))
+            elif op == "pop":
+                store["list"].pop()
+            elif op == "sort":
+                store["list"].sort()
+            elif op == "reverse":
+                store["list"].reverse()
+            elif op == "clear":
+                store["list"].clear()
+            msg = "List operation successful."
+            after = store["list"]
+
+        # ----- DICTIONARY -----
+        elif dtype == "dict":
+            if op == "add" and key:
+                store["dict"][key] = parse_value(val)
+            elif op == "update" and key in store["dict"]:
+                store["dict"][key] = parse_value(val)
+            elif op == "remove" and key in store["dict"]:
+                store["dict"].pop(key)
+            elif op == "clear":
+                store["dict"].clear()
+            msg = "Dictionary operation successful."
+            after = store["dict"]
+
+        # ----- SET -----
+        elif dtype == "set":
+            s = store["set"]
+            if op == "add":
+                s.add(parse_value(val))
+            elif op == "remove":
+                if parse_value(val) in s:
+                    s.remove(parse_value(val))
+            elif op == "union":
+                s = s.union({5, 6, 7})
+            elif op == "intersection":
+                s = s.intersection({2, 3, 5})
+            elif op == "difference":
+                s = s.difference({1, 2})
+            elif op == "clear":
+                s.clear()
+            store["set"] = s
+            after = list(s)
+            msg = "Set operation successful."
+
+        # ----- TUPLE -----
+        elif dtype == "tuple":
+            t = list(store["tuple"])
+            if op == "extend":
+                t.append(parse_value(val))
+                store["tuple"] = tuple(t)
+            elif op == "slice":
+                i = int(val)
+                store["tuple"] = store["tuple"][:i]
+            elif op == "clear":
+                store["tuple"] = ()
+            msg = "Tuple operation successful."
+            after = store["tuple"]
+
+        else:
+            return jsonify({"error": "Unsupported data type."}), 400
+
+        return jsonify({
+            "success": True,
+            "message": msg,
+            "before": before,
+            "after": after
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        })
+
+
+# ---------- FUNCTION EXECUTION ----------
+@app.route("/api/function", methods=["POST"])
+def run_function():
+    code = request.get_json().get("code", "")
+    out = io.StringIO()
+    safe_globals = {"__builtins__": {"print": print, "len": len, "sum": sum, "range": range}}
+    safe_locals = {}
+    try:
+        with contextlib.redirect_stdout(out):
+            exec(code, safe_globals, safe_locals)
+        return jsonify({"success": True, "output": out.getvalue()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e), "traceback": traceback.format_exc()})
+
+
+if __name__ == "__main__":
+    print("🚀 ETL Data Structures & Functions Playground running at http://localhost:5000")
+    app.run(debug=True, host="0.0.0.0", port=5000)
