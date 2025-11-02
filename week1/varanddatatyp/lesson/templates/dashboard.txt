@@ -324,7 +324,23 @@
             <div id="auto-demo-results" class="auto-demo-results" style="display: none;"></div>
         </div>
     </div>
+<div class="demo-section">
+    <h3>🧠 Data Type Playground</h3>
+    <p>Try typing Python expressions below to see how data types work:</p>
 
+    <div class="demo-controls">
+        <input type="text" id="datatypeInput" placeholder="Try: [1, 2, 3] or {'a': 10}" />
+        <button onclick="runDataTypeTest()">Run Test</button>
+        <button onclick="clearDataType()">Clear</button>
+    </div>
+
+    <div id="datatype-status"></div>
+
+    <pre id="datatypeResult"
+         style="background:#111;color:#0f0;padding:10px;border-radius:8px;min-height:100px;">
+Type your Python code above and click 'Run Test'
+    </pre>
+</div>
     <script>
         let currentMetrics = {};
         
@@ -489,6 +505,53 @@
                 sendMessage();
             }
         });
+
+
+async function runDataTypeTest() {
+    const code = document.getElementById('datatypeInput').value.trim();
+    const resultEl = document.getElementById('datatypeResult');
+    const statusEl = document.getElementById('datatype-status');
+
+    if (!code) {
+        statusEl.innerHTML = '<div class="error">Please enter a Python expression.</div>';
+        return;
+    }
+
+    statusEl.innerHTML = '<div class="loading">⏳ Evaluating...</div>';
+    resultEl.textContent = '';
+
+    try {
+        const response = await fetch('/api/datatype-test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+
+        const data = await response.json();
+        statusEl.innerHTML = '';
+
+        if (data.error) {
+            resultEl.textContent = `❌ ${data.error}`;
+            resultEl.style.color = '#f88';
+        } else {
+            resultEl.style.color = '#0f0';
+            resultEl.textContent =
+`Input: ${data.input}
+Result: ${data.result}
+Type: ${data.type}
+Literal: ${data.is_literal}`;
+        }
+    } catch (err) {
+        statusEl.innerHTML = '<div class="error">⚠️ Failed to contact server</div>';
+    }
+}
+
+function clearDataType() {
+    document.getElementById('datatypeInput').value = '';
+    document.getElementById('datatypeResult').textContent =
+        "Type your Python code above and click 'Run Test'";
+    document.getElementById('datatype-status').innerHTML = '';
+}
         
         // Initial load and periodic updates
         updateMetrics();
