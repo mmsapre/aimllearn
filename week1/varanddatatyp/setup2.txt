@@ -1,96 +1,169 @@
 @echo off
-REM ===============================================================
-REM  Windows Setup Script for Day 2: Variables, Data Types & Operators
-REM ===============================================================
-
+setlocal enabledelayedexpansion
+chcp 65001 >nul
 echo 🚀 Generating Day 2 lesson files...
 
-REM create lesson directory
+REM Create the directory
 if not exist day2_variables_datatypes mkdir day2_variables_datatypes
 cd day2_variables_datatypes
 
-REM ---------- setup.bat ----------
+REM ------------------------ setup.bat ------------------------
 echo 📦 Creating setup.bat...
 del setup.bat 2>nul
->>setup.bat echo @echo off
->>setup.bat echo echo 🔧 Setting up Python environment for Day 2
->>setup.bat echo python --version ^>nul 2^>^&1
->>setup.bat echo IF %%ERRORLEVEL%% NEQ 0 (
->>setup.bat echo   echo ❌ Python 3 not found. Install Python 3.11+
->>setup.bat echo   exit /b 1
->>setup.bat echo )
->>setup.bat echo echo 📦 Creating virtual environment...
->>setup.bat echo python -m venv ai_course_env
->>setup.bat echo echo 🔄 Activating virtual environment...
->>setup.bat echo CALL ai_course_env\Scripts\activate.bat
->>setup.bat echo echo 📥 Installing requirements...
->>setup.bat echo python -m pip install --upgrade pip
->>setup.bat echo IF EXIST requirements.txt (
->>setup.bat echo   pip install -r requirements.txt
->>setup.bat echo ) ELSE (
->>setup.bat echo   echo ⚠️ No requirements.txt found.
->>setup.bat echo )
->>setup.bat echo echo ✅ Setup complete!
->>setup.bat echo echo 🎯 To activate later: ai_course_env\Scripts\activate
->>setup.bat echo echo 🚀 Then run: python lesson_code.py
+(
+echo @echo off
+echo echo 🔧 Setting up Python environment for Day 2: Variables, Data Types, and Operators
+echo python --version ^>nul 2^>^&1
+echo IF %%ERRORLEVEL%% NEQ 0 (
+echo   echo ❌ Python 3 not found. Please install Python 3.11+
+echo   exit /b 1
+echo )
+echo echo 📦 Creating virtual environment...
+echo python -m venv ai_course_env
+echo CALL ai_course_env\Scripts\activate.bat
+echo echo 📥 Installing requirements...
+echo python -m pip install --upgrade pip
+echo IF EXIST requirements.txt (
+echo   pip install -r requirements.txt
+echo ) ELSE (
+echo   echo ⚠️ No requirements.txt found.
+echo )
+echo echo ✅ Setup complete!
+echo echo 🎯 To activate later: ai_course_env\Scripts\activate
+echo echo 🚀 Then run: python lesson_code.py
+) > setup.bat
 
-REM ---------- requirements.txt ----------
+REM ------------------------ requirements.txt ------------------------
 echo 📋 Creating requirements.txt...
 del requirements.txt 2>nul
->>requirements.txt echo jupyter==1.0.0
->>requirements.txt echo ipython==8.17.2
->>requirements.txt echo numpy==1.25.2
->>requirements.txt echo pandas==2.1.4
->>requirements.txt echo pytest==7.4.3
->>requirements.txt echo black==23.11.0
+(
+echo # Day 2: Variables, Data Types, and Operators for AI
+echo # Python 3.11+ required
+echo jupyter==1.0.0
+echo ipython==8.17.2
+echo numpy==1.25.2
+echo pandas==2.1.4
+echo pytest==7.4.3
+echo black==23.11.0
+) > requirements.txt
 
-REM ---------- lesson_code.py ----------
+REM ------------------------ lesson_code.py ------------------------
 echo 🐍 Creating lesson_code.py...
 del lesson_code.py 2>nul
->>lesson_code.py echo print("🎓 Day 2: Variables, Data Types and Operators for AI")
->>lesson_code.py echo print("Learn about strings, ints, floats, bools and lists for AI tasks.")
+(
+echo #!/usr/bin/env python3
+echo """Day 2: Variables, Data Types, and Operators for AI"""
+echo import random
+echo from typing import List, Dict, Union
+echo.
+echo def demonstrate_ai_data_types():
+echo ^    print("🤖 AI Data Types Demonstration")
+echo ^    print("=" * 40)
+echo ^    user_prompt = "What's the weather like today?"
+echo ^    model_name = "ChatHelper-v1"
+echo ^    system_message = "You are a helpful AI assistant"
+echo ^    print(f"User Prompt: {user_prompt}")
+echo ^    print(f"Model Name: {model_name}")
+echo ^    print(f"System Message: {system_message}")
+echo ^    print(f"Prompt Analysis: {len(user_prompt)} characters, {len(user_prompt.split())} words")
+echo.
+echo class SimpleAIAgent:
+echo ^    def __init__(self, name: str):
+echo ^        self.name = name
+echo ^        self.is_active = True
+echo ^        self.version = "1.0.0"
+echo ^        self.conversation_history = []
+echo ^        self.confidence_scores = []
+echo ^        print(f"🤖 AI Agent {self.name} initialized (v{self.version})")
+echo.
+echo ^    def process_input(self, user_input: str) -> str:
+echo ^        if not isinstance(user_input, str) or len(user_input.strip()) == 0:
+echo ^            return "Error: Invalid input provided"
+echo ^        import random
+echo ^        self.conversation_history.append(user_input)
+echo ^        base_conf = random.uniform(0.7,0.95)
+echo ^        conf = round(base_conf,3)
+echo ^        self.confidence_scores.append(conf)
+echo ^        if "hello" in user_input.lower():
+echo ^            return f"Hello! I'm {self.name}."
+echo ^        elif "?" in user_input:
+echo ^            return "That's an interesting question."
+echo ^        else:
+echo ^            return f"I understand: {user_input}"
+echo.
+echo ^    def get_agent_status(self):
+echo ^        total = len(self.conversation_history)
+echo ^        avg = sum(self.confidence_scores)/total if total else 0
+echo ^        return {"agent_name": self.name,"total":total,"avg_conf":avg}
+echo.
+echo def main():
+echo ^    demonstrate_ai_data_types()
+echo ^    agent = SimpleAIAgent("StudyBuddy")
+echo ^    for text in ["Hello there!","What's the weather?"]:
+echo ^        print("User:",text)
+echo ^        print("Agent:",agent.process_input(text))
+echo ^    print(agent.get_agent_status())
+echo.
+echo if __name__ == "__main__":
+echo ^    main()
+) > lesson_code.py
 
-REM ---------- test_lesson.py ----------
+REM ------------------------ test_lesson.py ------------------------
 echo 🧪 Creating test_lesson.py...
 del test_lesson.py 2>nul
->>test_lesson.py echo import pytest
->>test_lesson.py echo.
->>test_lesson.py echo def test_basic_types():
->>test_lesson.py echo ^    s = "AI"
->>test_lesson.py echo ^    i = 42
->>test_lesson.py echo ^    f = 3.14
->>test_lesson.py echo ^    b = True
->>test_lesson.py echo ^    lst = [1, 2, 3]
->>test_lesson.py echo ^    assert isinstance(s, str)
->>test_lesson.py echo ^    assert isinstance(i, int)
->>test_lesson.py echo ^    assert isinstance(f, float)
->>test_lesson.py echo ^    assert isinstance(b, bool)
->>test_lesson.py echo ^    assert isinstance(lst, list)
->>test_lesson.py echo.
->>test_lesson.py echo if __name__ == "__main__":
->>test_lesson.py echo ^    print("🧪 Running Day 2 basic data type tests...")
->>test_lesson.py echo ^    test_basic_types()
->>test_lesson.py echo ^    print("✅ All tests passed!")
+(
+echo import pytest
+echo from lesson_code import SimpleAIAgent
+echo.
+echo def test_basic_types():
+echo ^    s="AI"; i=1; f=3.14; b=True; lst=[1,2,3]
+echo ^    assert isinstance(s,str)
+echo ^    assert isinstance(i,int)
+echo ^    assert isinstance(f,float)
+echo ^    assert isinstance(b,bool)
+echo ^    assert isinstance(lst,list)
+echo.
+echo def test_agent_process():
+echo ^    agent=SimpleAIAgent("TestBot")
+echo ^    r=agent.process_input("Hello")
+echo ^    assert "Hello" in r or "Error" not in r
+echo ^    st=agent.get_agent_status()
+echo ^    assert "agent_name" in st
+echo ^    assert isinstance(st["total"],int)
+echo.
+echo if __name__=="__main__":
+echo ^    print("🧪 Running simple tests...")
+echo ^    test_basic_types(); test_agent_process()
+echo ^    print("✅ All tests passed!")
+) > test_lesson.py
 
-REM ---------- README.md ----------
+REM ------------------------ README.md ------------------------
 echo 📖 Creating README.md...
 del README.md 2>nul
->>README.md echo # Day 2: Variables, Data Types and Operators for AI
->>README.md echo.
->>README.md echo Learn how Python data types form the foundation of AI systems.
->>README.md echo.
->>README.md echo ## Quick Start
->>README.md echo 1. Run setup.bat
->>README.md echo 2. Activate environment: ai_course_env\Scripts\activate
->>README.md echo 3. Run python lesson_code.py
->>README.md echo 4. Verify with python test_lesson.py
-
-REM ---------- finish ----------
-echo ✅ All Day 2 lesson files created successfully!
-echo 📂 Folder: %cd%
+(
+echo # Day 2: Variables, Data Types, and Operators for AI
 echo.
+echo Welcome to Day 2 of your 180-day AI/ML course!
+echo.
+echo ## Quick Start
+echo 1. Run setup.bat
+echo 2. CALL ai_course_env\Scripts\activate
+echo 3. python lesson_code.py
+echo 4. python test_lesson.py
+echo.
+echo ## Files
+echo - setup.bat
+echo - lesson_code.py
+echo - test_lesson.py
+echo - requirements.txt
+echo - README.md
+) > README.md
+
+REM ------------------------ Done ------------------------
+echo ✅ All files created successfully!
+echo 📂 Folder: %cd%
 echo To begin:
-echo   1. Run setup.bat
-echo   2. Activate environment
-echo   3. Run python lesson_code.py
-echo   4. Run python test_lesson.py
+echo   setup.bat
+echo   CALL ai_course_env\Scripts\activate
+echo   python lesson_code.py
+echo   python test_lesson.py
