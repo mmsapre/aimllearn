@@ -1,0 +1,11 @@
+def demonstrate_set_usage():
+    currencies = ["USD", "EUR", "USD", "GBP", "EUR", "INR"]
+    unique_currencies = set(currencies)
+    return {
+        "concept": "Set",
+        "description": "Sets store unique, unordered items — ideal for deduplication.",
+        "input_values": currencies,
+        "unique_values": list(unique_currencies),
+        "duplicates_removed": len(currencies) - len(unique_currencies),
+        "use_case": "Identify distinct currencies or unique IDs in ETL data"
+    }
