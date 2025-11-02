@@ -1,215 +1,159 @@
 #!/usr/bin/env python3
 """
-Web Dashboard for Day 2: Variables, Data Types, and Operators for AI
-180-Day AI and Machine Learning Course
-
-A simple web dashboard to display AI agent metrics and demo functionality.
+AI Learning Dashboard - Day 2: Variables, Data Types, and Operators
+Enhanced: Interactive Teaching and Playground
 """
 
 from flask import Flask, render_template, jsonify, request
-import json
-import time
-from learnings_code import SimpleAIAgent, demonstrate_ai_data_types
-import threading
-import random
 import ast
+import time
+import threading
+from lesson_code import SimpleAIAgent
 
 app = Flask(__name__)
-
-# Global AI agent instance
 ai_agent = SimpleAIAgent("DashboardBot")
 metrics_history = []
 
+
 def update_metrics():
-    """Update metrics periodically"""
-    global metrics_history
-    
+    """Continuously update simple metrics in background."""
     while True:
         status = ai_agent.get_agent_status()
         metrics_history.append({
-            'timestamp': time.time(),
-            'total_interactions': status['total_interactions'],
-            'success_rate': status['success_rate'],
-            'average_confidence': status['average_confidence'],
-            'is_active': status['is_active']
+            "timestamp": time.time(),
+            "total_interactions": status["total_interactions"],
+            "success_rate": status["success_rate"],
+            "average_confidence": status["average_confidence"],
+            "is_active": status["is_active"],
         })
-        
-        # Keep only last 50 entries
         if len(metrics_history) > 50:
-            metrics_history = metrics_history[-50:]
-        
-        time.sleep(5)  # Update every 5 seconds
+            metrics_history[:] = metrics_history[-50:]
+        time.sleep(5)
 
-@app.route('/')
+
+@app.route("/")
 def dashboard():
-    """Main dashboard page"""
-    return render_template('dashboard.html')
+    return render_template("dashboard.html")
 
-@app.route('/api/metrics')
-def get_metrics():
-    """API endpoint to get current metrics"""
-    status = ai_agent.get_agent_status()
-    return jsonify({
-        'agent_name': status['agent_name'],
-        'version': status['version'],
-        'status': status['status'],
-        'total_interactions': status['total_interactions'],
-        'successful_responses': status['successful_responses'],
-        'success_rate': status['success_rate'],
-        'average_confidence': status['average_confidence'],
-        'is_active': status['is_active'],
-        'has_conversation_history': status['has_conversation_history'],
-        'recent_conversations': status['recent_conversations'],
-        'recent_confidence_scores': status['recent_confidence_scores'],
-        'min_confidence': status['min_confidence'],
-        'max_confidence': status['max_confidence']
-    })
 
-@app.route('/api/metrics/history')
-def get_metrics_history():
-    """API endpoint to get metrics history"""
-    return jsonify(metrics_history)
-
-@app.route('/api/demo', methods=['POST'])
-def run_demo():
-    """API endpoint to run demo interactions"""
-    data = request.get_json()
-    user_input = data.get('input', '')
-    
-    if user_input:
-        response = ai_agent.process_input(user_input)
-        return jsonify({
-            'response': response,
-            'status': ai_agent.get_agent_status()
-        })
-    
-    return jsonify({'error': 'No input provided'})
-
-@app.route('/api/demo/auto', methods=['POST'])
-def run_auto_demo():
-    """API endpoint to run automatic demo with sample inputs"""
-    sample_inputs = [
-        "Hello there!",
-        "What's the weather like today?",
-        "Can you help me learn Python?",
-        "How do neural networks work?",
-        "Thanks for your help!"
+@app.route("/api/demo/teach", methods=["POST"])
+def run_teaching_demo():
+    """Show Python data types with definitions, examples, and AI context."""
+    types_info = [
+        {
+            "data_type": "int",
+            "description": "Whole numbers without decimals.",
+            "example": "epochs = 100",
+            "ai_use": "Used for counting training loops, batches, or samples.",
+        },
+        {
+            "data_type": "float",
+            "description": "Numbers with decimal precision.",
+            "example": "learning_rate = 0.001",
+            "ai_use": "Represents continuous metrics like accuracy or probabilities.",
+        },
+        {
+            "data_type": "str",
+            "description": "Sequence of characters (text).",
+            "example": "prompt = 'Hello AI'",
+            "ai_use": "Stores text prompts, labels, or chat messages.",
+        },
+        {
+            "data_type": "bool",
+            "description": "Logical value True or False.",
+            "example": "is_ready = True",
+            "ai_use": "Used for control flags and decision logic.",
+        },
+        {
+            "data_type": "list",
+            "description": "Ordered, mutable collection.",
+            "example": "scores = [0.9, 0.85, 0.8]",
+            "ai_use": "Stores multiple values like prediction results or records.",
+        },
+        {
+            "data_type": "tuple",
+            "description": "Ordered, immutable collection.",
+            "example": "record = ('cat', 'animal')",
+            "ai_use": "Holds fixed pairs of values like (input, label).",
+        },
+        {
+            "data_type": "set",
+            "description": "Unordered collection of unique elements.",
+            "example": "features = {'A', 'B', 'C'}",
+            "ai_use": "Represents distinct categories or unique features.",
+        },
+        {
+            "data_type": "dict",
+            "description": "Key-value mapping structure.",
+            "example": "metrics = {'accuracy': 0.95}",
+            "ai_use": "Stores configurations, metrics, or named parameters.",
+        },
+        {
+            "data_type": "complex",
+            "description": "Number with real and imaginary parts.",
+            "example": "z = 0.8 + 0.3j",
+            "ai_use": "Used in advanced signal processing or neural simulations.",
+        },
+        {
+            "data_type": "NoneType",
+            "description": "Represents the absence of a value.",
+            "example": "value = None",
+            "ai_use": "Used for missing data or optional parameters.",
+        },
     ]
-    
-    results = []
-    for input_text in sample_inputs:
-        response = ai_agent.process_input(input_text)
-        results.append({
-            'input': input_text,
-            'response': response,
-            'confidence': ai_agent.confidence_scores[-1] if ai_agent.confidence_scores else 0
-        })
-    
-    return jsonify({
-        'results': results,
-        'final_status': ai_agent.get_agent_status()
-    })
+    ai_agent.process_input("Teaching Python data types for AI")
+    return jsonify(
+        {
+            "types": types_info,
+            "summary": f"{len(types_info)} Python data types explained.",
+            "comment": "💡 Each data type is a building block for AI systems — used in datasets, model configs, or inference logic.",
+        }
+    )
 
-@app.route('/api/datatype-test', methods=['POST'])
-def test_data_type():
-    """Interactive endpoint to test and learn Python data types"""
+
+@app.route("/api/playground", methods=["POST"])
+def playground():
+    """Evaluate user-provided expression safely and explain its type."""
     data = request.get_json()
-    user_code = data.get('code', '')
+    user_input = data.get("expression", "")
 
-    if not user_code:
-        return jsonify({'error': 'No code provided'}), 400
-
-    # Define a safe evaluation environment
-    safe_builtins = {
-        'str': str,
-        'int': int,
-        'float': float,
-        'bool': bool,
-        'list': list,
-        'dict': dict,
-        'len': len,
-        'sum': sum,
-        'type': type,
-        'print': print,
-    }
+    if not user_input.strip():
+        return jsonify({"error": "No input provided"}), 400
 
     try:
-        # Use ast.literal_eval for safety (only literal expressions)
-        result = ast.literal_eval(user_code)
-        return jsonify({
-            'input': user_code,
-            'result': str(result),
-            'type': type(result).__name__,
-            'is_literal': True
-        })
+        result = ast.literal_eval(user_input)
+        dtype = type(result).__name__
+    except Exception:
+        result = user_input
+        dtype = "str (unparsed)"
 
-    except (ValueError, SyntaxError):
-        # If not a literal, fallback to controlled eval
-        try:
-            result = eval(user_code, {"__builtins__": safe_builtins})
-            return jsonify({
-                'input': user_code,
-                'result': str(result),
-                'type': type(result).__name__,
-                'is_literal': False
-            })
-        except Exception as e:
-            return jsonify({'error': f'Invalid or unsafe code: {e}'}), 400
+    ai_examples = {
+        "int": "Used for counting epochs, iterations, or samples.",
+        "float": "Represents continuous values like learning rate or accuracy.",
+        "str": "Stores text like prompts, labels, or messages.",
+        "list": "Holds a sequence of data samples or tokens.",
+        "tuple": "Immutable grouping of related values (e.g., input & label).",
+        "set": "Represents unique features or categories.",
+        "dict": "Used for mappings like metric_name → score.",
+        "bool": "Used in flags (e.g., model_ready = True).",
+        "NoneType": "Represents missing or optional data.",
+        "complex": "Can encode signal amplitude and phase.",
+    }
 
-@app.route('/api/demo/teach', methods=['POST'])
-def run_teaching_demo():
-    """Expanded teaching mode: covers all Python data types with AI examples."""
-    examples = [
-        # Numeric types
-        {"variable": "learning_rate", "value": 0.001, "type": "float",
-         "ai_use": "Used for model optimization (gradient descent step size)."},
-        {"variable": "num_epochs", "value": 50, "type": "int",
-         "ai_use": "Number of times the model trains on the full dataset."},
-        {"variable": "complex_weight", "value": str(complex(0.8, 0.3)), "type": "complex",
-         "ai_use": "Represents phase and magnitude in quantum or signal models."},
-        {"variable": "legacy_id", "value": 1234567890123456789, "type": "long (int in Python 3)",
-         "ai_use": "Large integer identifier; in Python 3, 'int' replaces 'long'."},
+    explanation = ai_examples.get(dtype, "Generic Python data type used in AI programming.")
+    ai_agent.process_input(f"Playground evaluated {user_input}")
+    return jsonify(
+        {
+            "input": user_input,
+            "evaluated_value": str(result),
+            "data_type": dtype,
+            "ai_context": explanation,
+        }
+    )
 
-        # Boolean
-        {"variable": "is_model_ready", "value": True, "type": "bool",
-         "ai_use": "Indicates if the AI system is ready to serve predictions."},
 
-        # String
-        {"variable": "prompt", "value": "Explain reinforcement learning in simple terms.", "type": "str",
-         "ai_use": "User query text sent to a conversational model."},
-
-        # Collections
-        {"variable": "supported_languages", "value": ["English", "French", "Hindi"], "type": "list",
-         "ai_use": "List of languages the model supports."},
-        {"variable": "training_batch", "value": ("image_01.png", "label: cat"), "type": "tuple",
-         "ai_use": "Immutable batch pair: (input, label)."},
-        {"variable": "active_features", "value": ["feature_1", "feature_2", "feature_3"], "type": "set",
-         "ai_use": "Unique feature names activated for the current model."},
-        {"variable": "model_metrics", "value": {"accuracy": 0.95, "loss": 0.05}, "type": "dict",
-         "ai_use": "Stores key performance indicators for model evaluation."},
-
-        # Bytes
-        {"variable": "binary_input", "value": "b'\\x89PNG\\r\\n'", "type": "bytes",
-         "ai_use": "Raw byte stream, often used for image or file input in AI systems."},
-
-        # NoneType
-        {"variable": "optional_value", "value": None, "type": "NoneType",
-         "ai_use": "Represents absence of data or optional configuration."}
-    ]
-
-    ai_agent.process_input("Teaching all Python data types with AI examples")
-    return jsonify({
-        "examples": examples,
-        "summary": f"{len(examples)} Python data types explained",
-        "status": ai_agent.get_agent_status()
-    })
-if __name__ == '__main__':
-    # Start metrics update thread
-    metrics_thread = threading.Thread(target=update_metrics, daemon=True)
-    metrics_thread.start()
-    
-    print("🚀 Starting AI Dashboard...")
-    print("📊 Dashboard will be available at: http://localhost:5000")
-    print("🤖 AI Agent initialized and ready!")
-    
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    threading.Thread(target=update_metrics, daemon=True).start()
+    print("🚀 Starting AI Dashboard with Data Type Lesson and Playground...")
+    print("📊 Open http://localhost:5000")
+    app.run(debug=True, host="0.0.0.0", port=5000)
