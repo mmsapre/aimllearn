@@ -156,7 +156,53 @@ def test_data_type():
         except Exception as e:
             return jsonify({'error': f'Invalid or unsafe code: {e}'}), 400
 
+@app.route('/api/demo/teach', methods=['POST'])
+def run_teaching_demo():
+    """Expanded teaching mode: covers all Python data types with AI examples."""
+    examples = [
+        # Numeric types
+        {"variable": "learning_rate", "value": 0.001, "type": "float",
+         "ai_use": "Used for model optimization (gradient descent step size)."},
+        {"variable": "num_epochs", "value": 50, "type": "int",
+         "ai_use": "Number of times the model trains on the full dataset."},
+        {"variable": "complex_weight", "value": str(complex(0.8, 0.3)), "type": "complex",
+         "ai_use": "Represents phase and magnitude in quantum or signal models."},
+        {"variable": "legacy_id", "value": 1234567890123456789, "type": "long (int in Python 3)",
+         "ai_use": "Large integer identifier; in Python 3, 'int' replaces 'long'."},
 
+        # Boolean
+        {"variable": "is_model_ready", "value": True, "type": "bool",
+         "ai_use": "Indicates if the AI system is ready to serve predictions."},
+
+        # String
+        {"variable": "prompt", "value": "Explain reinforcement learning in simple terms.", "type": "str",
+         "ai_use": "User query text sent to a conversational model."},
+
+        # Collections
+        {"variable": "supported_languages", "value": ["English", "French", "Hindi"], "type": "list",
+         "ai_use": "List of languages the model supports."},
+        {"variable": "training_batch", "value": ("image_01.png", "label: cat"), "type": "tuple",
+         "ai_use": "Immutable batch pair: (input, label)."},
+        {"variable": "active_features", "value": ["feature_1", "feature_2", "feature_3"], "type": "set",
+         "ai_use": "Unique feature names activated for the current model."},
+        {"variable": "model_metrics", "value": {"accuracy": 0.95, "loss": 0.05}, "type": "dict",
+         "ai_use": "Stores key performance indicators for model evaluation."},
+
+        # Bytes
+        {"variable": "binary_input", "value": "b'\\x89PNG\\r\\n'", "type": "bytes",
+         "ai_use": "Raw byte stream, often used for image or file input in AI systems."},
+
+        # NoneType
+        {"variable": "optional_value", "value": None, "type": "NoneType",
+         "ai_use": "Represents absence of data or optional configuration."}
+    ]
+
+    ai_agent.process_input("Teaching all Python data types with AI examples")
+    return jsonify({
+        "examples": examples,
+        "summary": f"{len(examples)} Python data types explained",
+        "status": ai_agent.get_agent_status()
+    })
 if __name__ == '__main__':
     # Start metrics update thread
     metrics_thread = threading.Thread(target=update_metrics, daemon=True)
