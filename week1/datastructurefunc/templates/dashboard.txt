@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ETL Data Structures & Functions Playground</title>
+<style>
+body{font-family:Segoe UI;background:linear-gradient(135deg,#667eea,#764ba2);color:#333;margin:0;padding:30px;}
+.container{max-width:960px;margin:auto;background:white;border-radius:12px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.1);}
+button{background:#667eea;color:white;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;margin:5px;}
+button:hover{background:#5a6fd8;}
+pre,textarea{background:#f8f8f8;border-radius:8px;width:100%;padding:12px;font-family:monospace;white-space:pre-wrap;}
+#compare-table{border-collapse:collapse;width:100%;margin-top:15px;display:none;}
+th,td{border:1px solid #ddd;padding:8px;}
+th{background:#667eea;color:white;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🧩 ETL Data Structures & Functions Playground</h2>
+  <p>Experiment with Lists, Tuples, Dictionaries, Sets, and Functions in ETL pipelines — your work is now saved automatically per topic!</p>
+
+  <button onclick="loadLesson('/api/list-tuple','List & Tuple')">📘 Lists & Tuples</button>
+  <button onclick="loadLesson('/api/dictionary','Dictionary')">📙 Dictionary</button>
+  <button onclick="loadLesson('/api/set','Set')">📗 Set</button>
+  <button onclick="loadLesson('/api/functions','Functions')">🧮 Functions</button>
+  <button onclick="compareAll()">🔍 Compare All</button>
+  <button onclick="startQuiz()">🎯 Quiz</button>
+
+  <pre id="output">💡 Select a topic to explore...</pre>
+
+  <div id="playground" style="display:none;">
+    <h3>🧠 Mini Playground (auto-saves your code)</h3>
+    <textarea id="code-input" placeholder="Try your ETL Python logic here..."></textarea>
+    <button onclick="runPlayground()">▶ Run</button>
+    <pre id="result-output">⏳ Output will appear here...</pre>
+  </div>
+
+  <table id="compare-table">
+    <thead><tr><th>Structure</th><th>Ordered</th><th>Mutable</th><th>Duplicates</th><th>Use Case</th></tr></thead>
+    <tbody id="compare-body"></tbody>
+  </table>
+
+  <div id="quiz-area" style="margin-top:20px;"></div>
+</div>
+
+<script>
+let currentLesson = '';
+
+function loadLesson(api, title){
+  fetch(api).then(r=>r.json()).then(d=>{
+    document.getElementById("output").textContent = JSON.stringify(d,null,2);
+    document.getElementById("compare-table").style.display = "none";
+    document.getElementById("playground").style.display = "block";
+    currentLesson = title;
+
+    const savedCode = localStorage.getItem("code_" + title);
+    document.getElementById("code-input").value = savedCode || getTemplateForLesson(title);
+    document.getElementById("result-output").textContent = "⏳ Ready to run " + title;
+  });
+}
+
+function getTemplateForLesson(title){
+  switch(title){
+    case 'List & Tuple':
+      return `transactions=[100,200,300]\ntransactions.append(400)\nprint("All transactions:",transactions)\nbatch=('Batch-A',4,'done')\nprint("Batch tuple:",batch)`;
+    case 'Dictionary':
+      return `record={'id':1,'amount':500,'status':'raw'}\nrecord['status']='validated'\nrecord['currency']='USD'\nprint('Updated record:',record)`;
+    case 'Set':
+      return `currencies=['USD','USD','EUR','INR']\nunique=set(currencies)\nprint('Unique currencies:',unique)\nprint('Duplicates removed:',len(currencies)-len(unique))`;
+    case 'Functions':
+      return `def transform(record):\n    record['amount']*=1.1\n    return record\nrec={'id':1,'amount':500}\nprint('Transformed:',transform(rec))`;
+    default: return "";
+  }
+}
+
+function runPlayground(){
+  const code = document.getElementById("code-input").value;
+  const output = document.getElementById("result-output");
+  output.textContent = "⏳ Running...";
+  // Auto-save before running
+  if(currentLesson) localStorage.setItem("code_" + currentLesson, code);
+
+  fetch("/api/playground/execute", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ code })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.success){
+      output.textContent = res.output || "✅ Code executed successfully (no output)";
+    } else {
+      output.textContent = "❌ Error: " + res.error + "\n\n" + res.traceback;
+    }
+  });
+}
+
+function compareAll(){
+  fetch("/api/compare-all").then(r=>r.json()).then(rows=>{
+    const body=document.getElementById("compare-body");
+    body.innerHTML="";
+    rows.forEach(r=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${r.structure}</td><td>${r.ordered}</td><td>${r.mutable}</td>
+                    <td>${r.duplicates}</td><td>${r.use_case}</td>`;
+      body.appendChild(tr);
+    });
+    document.getElementById("compare-table").style.display="table";
+    document.getElementById("playground").style.display="none";
+    document.getElementById("output").textContent="📊 Comparison table below.";
+  });
+}
+
+function startQuiz(){
+  fetch("/api/quiz").then(r=>r.json()).then(qs=>{
+    const quiz=document.getElementById("quiz-area");
+    quiz.innerHTML="";
+    qs.forEach((q,idx)=>{
+      const div=document.createElement("div");
+      div.innerHTML=`<p><strong>Q${idx+1}:</strong> ${q.question}</p>`;
+      q.options.forEach(opt=>{
+        div.innerHTML+=`<label><input type='radio' name='q${idx}' value='${opt}'> ${opt}</label><br>`;
+      });
+      div.innerHTML+=`<p id='ex${idx}' style='display:none;'></p><hr>`;
+      quiz.appendChild(div);
+    });
+    const submit=document.createElement("button");
+    submit.textContent="✅ Submit";
+    submit.onclick=()=>checkAnswers(qs);
+    quiz.appendChild(submit);
+  });
+}
+
+function checkAnswers(qs){
+  let score=0;
+  qs.forEach((q,idx)=>{
+    const chosen=document.querySelector(`input[name='q${idx}']:checked`);
+    const exp=document.getElementById(`ex${idx}`);
+    if(!chosen){
+      exp.style.display="block";exp.style.color="orange";exp.textContent="⚠️ Not answered.";
+    }else if(chosen.value===q.answer){
+      exp.style.display="block";exp.style.color="green";exp.textContent=`✅ ${q.explanation}`;score++;
+    }else{
+      exp.style.display="block";exp.style.color="red";exp.textContent=`❌ ${q.explanation}`;
+    }
+  });
+  const percent=((score/qs.length)*100).toFixed(0);
+  const summary=`🎯 You scored ${score}/${qs.length} (${percent}%)`;
+  localStorage.setItem("etl_quiz_result",JSON.stringify({score,percent,date:new Date().toLocaleString()}));
+  const div=document.createElement("div");
+  div.style.marginTop="10px";div.textContent=summary;
+  document.getElementById("quiz-area").appendChild(div);
+}
+</script>
+</body>
+</html>
