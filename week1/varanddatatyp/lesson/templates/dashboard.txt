@@ -310,6 +310,8 @@
                 <input type="text" id="user-input" placeholder="Type your message here..." />
                 <button onclick="sendMessage()">Send Message</button>
                 <button onclick="runAutoDemo()">Run Auto Demo</button>
+            <button onclick="runTeachingDemo()">📘 Teach Data Types</button>
+
                 <button onclick="clearLog()">Clear Log</button>
             </div>
             
@@ -544,6 +546,29 @@ Literal: ${data.is_literal}`;
     } catch (err) {
         statusEl.innerHTML = '<div class="error">⚠️ Failed to contact server</div>';
     }
+}
+function runTeachingDemo(){
+    showLoading('📘 Teaching: Variables and Data Types...');
+    fetch('/api/demo/teach',{method:'POST',headers:{'Content-Type':'application/json'}})
+    .then(r=>r.json()).then(d=>{
+        hideStatus();
+        const div=document.getElementById('teaching-results');
+        div.style.display='block';
+        div.innerHTML='<h4>📘 Python Data Types & AI Examples</h4>';
+        let html='<table><tr><th>Variable</th><th>Value</th><th>Data Type</th><th>AI Use Case</th></tr>';
+        d.examples.forEach(e=>{
+            let bg='#f9f9f9';
+            if(e.type.includes('int')||e.type.includes('float'))bg='#e8f5e8';
+            else if(e.type==='str')bg='#e3f2fd';
+            else if(e.type==='bool')bg='#fff3e0';
+            else if(e.type==='dict'||e.type==='list'||e.type==='tuple')bg='#fce4ec';
+            html+=`<tr style="background:${bg};"><td>${e.variable}</td><td>${JSON.stringify(e.value)}</td><td>${e.type}</td><td>${e.ai_use}</td></tr>`;
+        });
+        html+=`<tr><td colspan="4"><b>${d.summary}</b></td></tr></table>`;
+        div.innerHTML+=html;
+        showSuccess('✅ Lesson complete! You learned about Python data types.');
+    })
+    .catch(e=>showError(e));
 }
 
 function clearDataType() {
