@@ -1,0 +1,28 @@
+from typing import List, Dict, Any
+
+def calculate_avg(records: List[int]) -> float:
+    return sum(records) / len(records)
+
+def transform_record(record: Dict[str, Any]) -> Dict[str, Any]:
+    record["amount"] = round(record["amount"] * 1.1, 2)
+    record["status"] = "transformed"
+    return record
+
+def demonstrate_functions():
+    transactions = [120, 240, 360]
+    avg = calculate_avg(transactions)
+    sample = {"id": 1, "amount": 500, "status": "raw"}
+    transformed = transform_record(sample.copy())
+    return {
+        "concept": "Functions",
+        "description": "Encapsulate reusable logic for transformation and aggregation.",
+        "examples": {
+            "average_calculation": avg,
+            "transformation": transformed
+        },
+        "best_practices": [
+            "Use single-purpose functions.",
+            "Return transformed data rather than modifying global state.",
+            "Document function inputs and outputs."
+        ]
+    }
